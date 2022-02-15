@@ -1,0 +1,236 @@
+
+---
+title: "Motif pattern discovery in TERF1 through ChIP-seq analysis"
+subtitle: "LCG BEII personal work -- 2022"
+author: "Phabel LÓPEZ"
+mail: phabel@lcg.unam.mx
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  pdf_document:
+    fig_caption: yes
+    highlight: zenburn
+    toc: yes
+    toc_depth: 3
+  html_document:
+    df_print: paged
+    code_folding: hide
+    self_contained: no
+    fig_caption: yes
+    highlight: zenburn
+    theme: cerulean
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+## Introduction
+
+  The *Chromatin Immunoprecipitation followed by Sequencing (ChIP-seq)* is a central method in [epi]genomic research and the study of gene regulation and chromatin state. [1,2] [1,2] It's a very useful method with applications focused on the analysis of the [epi]genomic landscape, which includes the discovery of Transcription Factors Binding Sites (TFBS) and motif discovery sites. [1,2]
+  
+  The *MYC proto-oncogene* is a *bHLH Transcription Factor (TF)* that encodes a nuclear phosphoprotein crucial for cell cycle progression, apoptosis and cellular transformation. [3] Its proteic product heterodimerizes with the MAX TF and binds to the E box DNA consensus sequence. [3] Over expression and amplification of MYC is observed in various human cancers and its translocations are associated with Burkitt lymphoma and human multiple myeloma, hence its classification as proto-oncogene. [3] The experiment's cell type was MCF-7, which belonged to human breast cancer adenocarcinoma established from the pleural effusion of a 69-year-old caucasian woman with metastatic mammary adenocarcinoma after radio and hormone therapy in 1970. [4]
+  
+  The analysis reported in this document was focused on the search of motif sequences for the MYC TF, for the study of its regulation is crucial in the advances against cancer, specially Burkitt lymphoma. [3] MYC ChIP-seq data from *ReMap* was downloaded in order to get and analyze the MYC motif patterns from real motif references and then compare the results with a negative control made of random motif sequences. This was meant to assess the reliability of the workflow and determine the best method and bioinformatic tool for motif pattern discovery.
+
+* * * * * *
+
+## Methods
+
+### 1) Getting Peaks from ReMap
+
+  The first step was to select the *TERF1 (Telomeric Repeat Binding Factor 1)* as the TF to analyze, which  encodes a telomere specific protein which is a component of the telomere nucleoprotein complex in the species Homo sapiens; its ChIP-seq peaks were downloaded from ReMap (<https://remap.univ-amu.fr/>). Once the file *GSE154941.MYC.MCF-7.bed.gz* was downloaded, it was analyzed with linux commands in other to assess the data; yielding 8679 peaks, sum of peak lengths of 3197602, and a mean peak length of 368.43. Furthermore, it was assure that all peaks belonged to the same tissue/cell type: GSE154941.MYC.MCF-7, in order to avoid bias and ensure data reliability.
+
+### 2) Getting Motifs from Reference Databases
+
+  The next step was to download the MYC reference motifs from Gaspard (<https://jaspar.genereg.net/>), as a frequency matrix in *TRANSFAC* format, for it has detailed data about the motif sources, which was vital to search for real motif sequences in the human genoma. [add _MotifLogo] The obtained file had the name *MA0147.3.transfac* but was renamed to *MA0147.3_reference-motifs.tf*.
+
+### 3) Discovering Motifs from RSAT peak-motifs
+
+  With the peaks and the reference motifs information, the remaining data to download were the actual human DNA sequences, which were retrieved from RSAT (<http://rsat.france-bioinformatique.fr/rsat/>) with its tool *fetch-sequences from UCSC*, using the genome *"hg38 - Human Dec. 2013 (GRCh38/hg38)"* and the file *GSE154941.MYC.MCF-7.bed.gz* as genomic coordinates. The resulted fetched sequences (fasta) were saved to the file *GSE154941.MYC.MCF-7.fasta*. This data was taken to the option for the *peak-motifs* analysis, taking *Jaspar - vertebrates (non-redundant)* and the file *MA0147.3_reference-motifs.tf* as input. The following results were sent to <http://rsat.france-bioinformatique.fr/rsat/tmp/www-data/2022/02/13/peak-motifs.2022-02-13.055650_2022-02-13.055650_8NkJOz/peak-motifs_synthesis.html>. The results from *peak-motifs* were send to USCS <http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position=chrX%3A15560138%2D15602945&hgsid=1282113811_qeeHuIDZxqgaURwqGalmPWPBhay7> for further analysis. The results were also downloaded to the zip file *peak-motifs_archive*.
+
+### 4) Negative Control
+
+  A negative control was created with *RSAT random genome fragments*, this was a collection of random regions having the same sizes as the original peaks. The aim was to run the same analyses with *peak-motifs* with the new random data, taking the file *GSE154941.MYC.MCF-7.bed.gz* as template data and *Homo sapiens GRCh38* as organism. The results of the random genome fragments can be seen in <http://rsat.france-bioinformatique.fr/rsat//tmp/www-data/2022/02/13/random-genome-fragments_2022-02-13.214528_b3Kvsi_fragments.bed>. Note that all chromosomes in this data set are random. This was the method chosen as negative control because there is quite little likelihood that all random fragments have the same motifs for the only one TF under analysis: MYC.
+
+  The output was downloaded and used as input file to *fetch sequences from UCSC*: *random-genome-fragments_2022-02-13.214528_b3Kvsi_fragments.bed*, using the genome *"hg38 - Human Dec. 2013 (GRCh38/hg38)*. The results were further sent directly to *peak-motifs*, with the file *MA0147.3_reference-motifs.tf* as reference motifs; just the same way the real data was analyzed. These results were sent to <http://rsat.france-bioinformatique.fr/rsat/tmp/www-data/2022/02/13/peak-motifs.2022-02-13.220640_2022-02-13.220640_XagQT2/peak-motifs_synthesis.html>.
+
+### 5) Matrix Clustering
+
+  The real data of comparisons between motifs was also saved and used as input for the RSAT tool *matrix-clustering*. The file *MA0147.4.transfac* was also used as a second motif collection in order to increase accuracy. The results were sent to <http://rsat.france-bioinformatique.fr/rsat/tmp/www-data/2022/02/13/matrix-clustering_2022-02-13.064600_jSHeOa/matrix-clustering_SUMMARY.html>, and the Dynamic Logo Forest can be seen in <http://rsat.france-bioinformatique.fr/rsat/tmp/www-data/2022/02/13/matrix-clustering_2022-02-13.064600_jSHeOa/matrix-clustering_portable_logo_tree.html>.
+
+* * * * * *
+
+## Results and discussion
+
+### 1) The motifs discovered in the peaks include the reference motifs corresponding the immunoprecipitated factor
+
+  The first point to analyze were the real motifs discovered in the peaks, which were computed taking the real motifs from Jaspar as reference. The resulted data showed 8679 peaks, with a total peak size of 3198 kb, a mean length of 218 bp and a max length of 1493 bp. *[supp_image_1]* Its nucleotide composition was quite regular, with very equal transition frequencies that aproached ~ 0.20 - 0.25. *[supp_image_2]* Surprisingly, the dinucleotide composition profiles were very similar too, with transition frequencies ranging from 0.122 - 0.348, with a mean approaching 0.25. *[supp_image_3]* These results are quite interesting since most transition frequencies do not tend to be so similar nor tend to approach 0.25 so neatly. A possible explanation for this behaviour could lay on the intrinsic nature of cancer cell types; it must be takent into consideration that cancer cells are highly mutable, which may equalize the overall transition frequencies of the nucleotides and dinucleotides. For example, it can be seen that the CpG transition is of 0.174, but it is not even the lowest transtion frequency as in other cell types in eucaryotes.
+
+### 2) The motifs were reported by some discovery approaches
+  
+The second point to analyze were the two charged reference motifs, which consensus sequence was a 6-NT: *CACGTG*. *[supp_image_4]* The discovered motifs by the position analysis algorithm gave good results, for the consensus sequence *CACGTG* was found three out of five times in the *positions_6nt* batch, with a *sg=300* and a *e-value=1e-300*; the other two matches had the same statistics and differed just by one letter. *[supp_image_5]* This practically showed that the real targeted motif corresponding the actual immunoprecipitated factor was matched and selected as the best result, confirming the reliability of the algorithm. In the case of the *positions_7nt* batch by the algorithm, pretty good results were found as well; three out of five matches had the desired sequence: *CACGTG*, along with a seventh letter that gave the combinations: *CCACGTG* and *CACGTGG*, but this two cases matched with both reference motifs, respectively. *[supp_image_6]* All three matches had a *sig=300* and a *e-value=1e-300*. So, the good result of these 7-NT-batch matches can be scaled to the ones of the 6-NT-batch ones, due to the fact that the 6-MNT consensus sequence was kept. There was something astonishing in the other two matches of the 7-NT batch by the algorithm, both of them differed from the other three in just one letter, giving the combinations: *CACATGG* and *CATGTGG*, but the statistics changed radically, giving  *sig=43.46* and a *e-value=1e-300* in both cases. *[supp_image_6]* This means that there was a huge penalization due to the one-letter change in both results, with quite a beautiful symmetry: both had one change and shared the same statistics. The interpretation for this may rely on the markov model used in the algorithm, for it only took a tiny change to practically discard a possible result, keeping only the ones with the exact 6-NT-consensus match.
+  
+  The third point to consider was that the dyad analysis had ambiguous results. *[supp_image_7]* On one hand, it did retrieve a perfect match  and a simmilar match: *CACATG*, which has just one letter changed and was also found in the *positions_6nt* batch and even received the best statistics. On the other hand, such results received even better statistics: *sig=350* and *e-value=0*;which should not have happened in the second match because it had a one-letter mistake. Another issue were the other three dyad matches that simply had nothing to do with the consensus motif but equally recevied the same statistics. Therefore, the dyad analysis may not have worked the best way simply because the *MYC motif* is not a dyad; it had one perfect result and a second very good one, but out of six. The fact that even totally mismatched dyad had the best statistics as the perfect match also makes the reliability of the dyad analysis ambiguous, but again, this might change when the target motif is actually a dyad, which was not the case for MYC.
+
+### 3) Motifs associated with other transcription factors were discovered too
+
+  The fourth point were the results of the discovered motifs with motif comparison. These results were good, for there were eigth best matches out of the 20 found motifs; such matches had the statistics: *sig=300* and *e-value=1e-300*. Of these eigth best matches, six were of the actual reference motif: *CACGTG*, and two had a one-letter mistake: *CACATG* and *CATGTG*. Even in some cases the actual reference motif *MYC* was taken as best match. *[supp_image_8]* This has good implications for the motif comparison method; furthermore, the remaining 12 motifs did not have good statistics so were not taken into consideration. Some other motifs associated with other Transcription Factors were discovered too, some of them were even related to *MYC*. The best matches of these other TFs were: MYCN (Pearson = 0.998), MAX (Pearson = 0.973), MNT (Pearson = 0.973) and MYC::MAX (Pearson = 0.901). *[supp_image_8 & supp_image_9]* Such results are totally expected based on biological knowledge, for example, the MYCN is a proto-oncogene member of the mere MYC family and encodes a protein with a bHLH just as MYC  itself and its amplification is also associated with a variety of tumors, specially neuroblastomas (<https://remap.univ-amu.fr/target_page/MYCN:9606>). MAX is a MYC-related Transcription Factor with which MYC itself heterodimerizes in order to bind to the E box consensus sequence and regulate the transcription of its specific genes; so it is not a surprised that MAX appears as a match, for it is an immunoprecipitated co-factor of MYC (<https://remap.univ-amu.fr/target_page/MYC:9606>). Next, the MNT or MAX network transcriptional repressor has a bHLHzip domain, simmilar to the bHLH of MYC and binds to the E box too, just like MYC; in fact MNT heterodimerizes with MAX too but as a transcriptional repressor and an antagonist of Myc-dependent transcriptional activation and cell growth, so its co-immunopreicpitation is not a surprise neither (<https://remap.univ-amu.fr/target_page/MNT:9606>). Finally, MYC::MAX is just the heterodimerized state of MYC itself so it is completely possible that it immunoprecipitates with MAX; this means that the binding part of MYC that participates on its immunoprecipitation during ChIP is not altered by its heterodimerization with MAX (<https://remap.univ-amu.fr/target_page/MYC:9606>).
+
+### 4) Comparison with the negative control
+
+  The fifth point is the comparison between the real data analysis described so far and the negative control analysis of random selections of genomic regions. This was considered a good negative control because shared the sequence length distribution. *[supp_image_10]* The results of this second analysis were totally different from the real data ones. Firstly, the nucleotide composition profiles showed a transition frequency with much higher AT (0.604) than GC (0.396) *[supp_image_11]*; the dinucleotide composition profiles showed more unequal transition frequencies with the CpG highly avoided (0.044) *[supp_image_12]*, which might mean that the hypothetical cell type is not highly prone to mutations, in contrast with the real cancerous data where cells are highly prone to mutations. Secondly, the two reference motifs where the same as in the real data, but a single significant pattern was found in the *positions_6nt* nor in the *positions_7nt* batch. *[supp_image_13]* Dyad analysis also gave biased results, giving significant scores to totally incorrect patterns. *[supp_image_14]* Thirdly, not even one discovered motif with motif comparison was taken as significant, and the discovered associated TFs did not have actual relation with MYC and all of them had a low Pearson correlation <0.85. These shows that the ChIP-seq-real-data results were significant and the tools used for its analysis were efficient. Both the pattern matching algorithm and the motif comparison gave pretty good results, but it is thought that the pattern discovery algorithm had the best ones, because the perfect match was found more times and there was no interference of other elements or TFs.
+
+* * * * * * 
+
+## Conclusions and perspectives
+
+  In conclusion, the overall ChIP-seq analysis results were positive regarding the finding of the correct MYC motifs in the real genome. The best matches were almost perfect and even MYC itself was found as the best match for the reference motifs; with the position analysis algorithm as the best mean of searching. Many co-factors, such as MAX, were included in the results because of its biological relevance and close relation or resemblance with MYC. And the negative control gave no positive results at all, showing the bioinformatic tools implemented are efficient at this kind of analyses. Every single step, from the peaks download to the negative control generation must be carefully assessed in order the reach the best biological interpretation.
+  
+  The analysis of ChIP-seq peaks with RSAT proved itself to be a great method to search for motif patterns for Transcription Factors along genomic sequences, as long as the pipeline is carefully executed and every step is justified, of course. These approaches have many further applications in the battle against cancer and new discoveries in genomic regulation and gene expression.
+  
+  As perspectives, it would be interesting to compare the results obtained with other bioinformatic tools for motif search, as well as analyzing the conditions of the MYC Transcription Factor with the other co-factors found along the computations; for example, it would be interesting to co-immunoprecipitate the heterodimer *MYC:MAX* and prove that the motif sequence remains free, or to discover whether *MAX* has a motif pattern of its own. Further experiments could also assess the *MYC* peaks with *epigenomic modifications*, and check if this affects the motif pattern search or discovery.
+
+## References
+
+1) Nakato R, Sakata T. Methods for ChIP-seq analysis: A practical workflow and advanced applications. Methods. 2021 Mar;187:44-53. doi: 10.1016/j.ymeth.2020.03.005. Epub 2020 Mar 30. PMID: 32240773.
+2) Rasika Mundade, Hatice Gulcin Ozer, Han Wei, Lakshmi Prabhu & Tao Lu (2014) Role of ChIP-seq in the discovery of transcription factor binding sites, differential gene regulation mechanism, epigenetic marks and beyond, Cell Cycle, 13:18, 2847-2852, DOI: 10.4161/15384101.2014.949201
+3) [ReMap] (2022) MYC. Retrieved February 11th, 2022: <https://remap.univ-amu.fr/target_page/MYC:9606>.
+4) [ReMap] (2022) Information for MCF-7. Retrieved February 11th, 2022: <https://remap.univ-amu.fr/biotype_page/MCF-7:9606>.
+
+### Bioinformatic tools' publications
+
+* Long-read transcriptome sequencing reveals abundant promoter diversity in distinct molecular subtypes of gastric cancer. Huang KK, Huang J, Wu JKL, Lee M, Tay ST, Kumar V, Ramnarayanan K, Padmanabhan N, Xu C, Tan ALK, Chan C, Kappei D, Göke J, Tan P Genome biology 2021 Jan 22;22(1):44 10.1186/s13059-021-02261-x
+* Thomas-Chollier, M., Herrmann, C., Defrance, M., Sand, O., Thieffry, D. and van Helden, J. (2011). RSAT peak-motifs: motif analysis in full-size ChIP-seq datasets Nucleic Acids Research doi:10.1093/nar/gkr1104, 9. [Open access]
+* Thomas-Chollier M, Darbo E, Herrmann C, Defrance M, Thieffry D, van Helden J. (2012). A complete workflow for the analysis of full-size ChIP-seq (and similar) data sets using peak-motifs. Nat Protoc 7(8): 1551-1568. [PMID 22836136]
+* Thomas-Chollier M, Herrmann C, Defrance M, Sand O, Thieffry D, van Helden J. (2012). RSAT peak-motifs: motif analysis in full-size ChIP-seq datasets. Nucleic Acids Res 40(4): e31.
+* Thomas-Chollier M, Darbo E, Herrmann C, Defrance M, Thieffry D, van Helden, J. (2012). A complete workflow for the analysis of full-size ChIP-seq (and similar) data sets using peak-motifs. Nat Protoc 7(8): 1551-1568.
+
+* * * * * * 
+
+## Supplementary material
+
+### Bioinformatics resources used for this work
+
+This table indicates the bioinformatics resources used for the analysis, in order of use.
+
+| Acronym | Description                                                                                                                                                                                 | URL                                       |
+|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| ReMap   | ReMap is a database of transcriptional regulators peaks derived from curated ChIP-seq, ChIP-exo, DAP-seq experiments in Human, Mouse, Fruit Fly and Arabidopsis Thaliana.                   | <https://remap.univ-amu.fr/>              |
+| GEO     | Gene Expresion Omnibus                                                                                                                                                                      | <https://www.ncbi.nlm.nih.gov/geo/query/> |
+| Jaspar  | The JASPAR CORE database contains a curated, non-redundant set of profiles, derived from published collections of experimentally defined transcription factor binding sites for eukaryotes. | <https://jaspar.genereg.net>              |
+| RSAT    | Regulatory Sequence Analysis Tools                                                                                                                                                          | <http://rsat.eu/>                         |
+| UCSC    | UCSC Genome Browser on Human                                                                                                                                                                | <http://genome.ucsc.edu/>                 |
+
+
+### Results Images
+
+!(supp_image_1: Sequence composition)[images/supp_image_1]
+
+!(supp_image_2: Nucleotide composition profiles)[images/supp_image_2]
+
+!(supp_image_3: Dinucleotide composition profiles)[images/supp_image_3]
+
+!(supp_image_4: Reference Motifs)[images/supp_image_4]
+
+!(supp_image_5: Positions_6nt)[images/supp_image_5]
+
+!(supp_image_6: Positions_7nt)[images/supp_image_6]
+
+!(supp_image_7: Dyad analysis)[images/supp_image_7]
+
+!(supp_image_8: Motif comparison 1)[images/supp_image_8]
+
+!(supp_image_9: Motif comparison 2)[images/supp_image_9]
+
+!(supp_image_10: Negative control length distribution)[images/supp_image_10]
+
+!(supp_image_11: Negative control nucleotide composition profiles)[images/supp_image_11]
+
+!(supp_image_12: Negative control dinucleotide composition profiles)[images/supp_image_12]
+
+!(supp_image_13: Negative control with no matches for position analysis: positions_6nt & positions_7nt)[images/supp_image_13]
+
+!(supp_image_14: Negative control dyad analysis)[images/supp_image_14]
+
+### Data sources
+
+Here is a complete list of all data sources.
+
+#### Peak Data set from ReMap
+Target name: MYC
+Target Modification: ~
+Ecotype/Strain: ~
+Biotype: MCF-7
+Biotype modification: ~
+Source: GEO
+Species: Homo sapien
+Experiment: GSE154941 <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154941>
+Peaks: 8679
+URL: <https://remap.univ-amu.fr/target_page/MYC:9606>
+
+#### Cell type information
+Cell_name: MCF-7
+Category: Cancer cell line
+Disease: NCIt; C4194; Invasive ductal carcinoma, not otherwise specified
+Sex_gender_of_cell: Female
+Age_of_donor: 69Y
+URL: <https://remap.univ-amu.fr/biotype_page/MCF-7:9606>
+
+#### Motifs from Jaspar
+Name: MYC
+Matrix ID: MA0147.3
+Base ID: MA0147
+Version: 3
+Family:	bHLH-ZIP
+Class:	Basic helix-loop-helix factors (bHLH)
+Family:	bHLH-ZIP
+Collection:	CORE
+Taxon:	Vertebrates
+Species:	Homo sapiens
+Data Type:	ChIP-seq
+Validation:	18555785
+Uniprot ID:	P01106  
+Source:	29126285
+Comment: ~
+URL: <https://jaspar.genereg.net/matrix/MA0147.3/>
+
+### Complete list of commands and parameters
+
+Here is the complete list of tools, commands and parameters used to [re]produce the analysis' results.
+
+#### .bed file assess
+gunzip -c GSE154941.MYC.MCF-7.bed.gz | awk '{len =
+ $3-$2; sum += len; n++; mean = sum/n; print"n="n"\tsum="sum"\tmean="mean}' | tail -n 1
+ --> n=8679  sum=3197602     mean=368.43
+
+#### All same tissue/cell type
+gunzip -c GSE154941.MYC.MCF-7.bed.gz | cut -f4 | sort -u
+--> GSE154941.MYC.MCF-7
+
+#### Just one tissue/cell type
+gunzip -c GSE154941.MYC.MCF-7.bed.gz | cut -f4 | sort -u | wc -l
+--> 1
+
+#### Retrieve DNA sequences from RSAT "fetch-sequences from UCSC"
+fetch-sequences  -v 1 -genome hg38 -header_format galaxy -i $RSAT/public_html/tmp/www-data/2022/02/13/GSE154941.MYC.MCF-7.bed.gz_k0qi_20220213_054537.gz -o $RSAT/public_html/tmp/www-data/2022/02/13/GSE154941.MYC.MCF-7.bed.gz_k0qi_20220213_054537.fasta
+
+Program version       	1.34
+Genome                	hg38
+DAS server URL        	http://genome.cse.ucsc.edu/cgi-bin/das/hg38
+Reference             	segment
+
+#### RSAT - peak-motifs result (real data)
+$RSAT/perl-scripts/peak-motifs  -v 1 -title 'GSE154941.MYC.MCF-7.gz_k0qi_20220213_054537.gz'  -i $RSAT/public_html/tmp/www-data/2022/02/13/peak-motifs.2022-02-13.055650_2022-02-13.055650_8NkJOz/peak-motifspeak_seq -markov auto -disco oligos,dyads,positions -nmotifs 5  -minol 6 -maxol 7  -no_merge_lengths -2str  -origin center  -motif_db jaspar_core_nonredundant_vertebrates tf $RSAT/public_html/motif_databases/JASPAR/Jaspar_2020/nonredundant/JASPAR2020_CORE_vertebrates_non-redundant_pfms.tf -ref_motifs $RSAT/public_html/tmp/www-data/2022/02/13/peak-motifs.2022-02-13.055650_2022-02-13.055650_8NkJOz/peak-motifs_ref_motifs.tf -scan_markov 1 -source galaxy  -task purge,seqlen,composition,disco,merge_motifs,split_motifs,motifs_vs_motifs,timelog,archive,synthesis,small_summary,motifs_vs_db,ref_motifs,motifs_vs_ref,scan -prefix peak-motifs -noov -img_format png  -outdir $RSAT/public_html/tmp/www-data/2022/02/13/peak-motifs.2022-02-13.055650_2022-02-13.055650_8NkJOz
+
+#### RSAT - Random genome fragments
+$RSAT/perl-scripts/random-genome-fragments  -template_format bed -i $RSAT/public_html/tmp/www-data/2022/02/13/random-genome-fragments_2022-02-13.214528_b3Kvsi_template.bed.gz -org Homo_sapiens_GRCh38  -return coord -coord_format bed -v 1  -o $RSAT/public_html/tmp/www-data/2022/02/13/random-genome-fragments_2022-02-13.214528_b3Kvsi_fragments.bed 2> $RSAT/public_html/tmp/www-data/2022/02/13/random-genome-fragments_2022-02-13.214528_b3Kvsi_error_log.txt
+
+#### RSAT - fetch-sequences
+fetch-sequences  -v 1 -genome hg38 -header_format galaxy -i $RSAT/public_html/tmp/www-data/2022/02/13/random-genome-fragments_2022-02-13.214528_b3Kvsi_fragments_poil_20220213_220251.bed -o $RSAT/public_html/tmp/www-data/2022/02/13/random-genome-fragments_2022-02-13.214528_b3Kvsi_fragments_poil_20220213_220251.fasta
+
+#### RSAT - peak-motifs (negative control)
+$RSAT/perl-scripts/peak-motifs  -v 1 -title 'random-genome-fragments_2022-02-13.214528_b3Kvsi_fragments_poil_20220213_220251'  -i $RSAT/public_html/tmp/www-data/2022/02/13/peak-motifs.2022-02-13.220640_2022-02-13.220640_XagQT2/peak-motifspeak_seq -markov auto -disco oligos,dyads,positions -nmotifs 5  -minol 6 -maxol 7  -no_merge_lengths -2str  -origin center  -motif_db jaspar_core_nonredundant_vertebrates tf $RSAT/public_html/motif_databases/JASPAR/Jaspar_2020/nonredundant/JASPAR2020_CORE_vertebrates_non-redundant_pfms.tf -ref_motifs $RSAT/public_html/tmp/www-data/2022/02/13/peak-motifs.2022-02-13.220640_2022-02-13.220640_XagQT2/peak-motifs_ref_motifs.tf -scan_markov 1 -source galaxy  -task purge,seqlen,composition,disco,merge_motifs,split_motifs,motifs_vs_motifs,timelog,archive,synthesis,small_summary,motifs_vs_db,ref_motifs,motifs_vs_ref,scan -prefix peak-motifs -noov -img_format png  -outdir $RSAT/public_html/tmp/www-data/2022/02/13/peak-motifs.2022-02-13.220640_2022-02-13.220640_XagQT2
+
+#### Matrix Clustering Analysis
+$RSAT/perl-scripts/matrix-clustering  -v 1 -max_matrices 300 -matrix peak-motifs_results $RSAT/public_html/tmp/www-data/2022/02/13/matrix-clustering_2022-02-13.064600_jSHeOa/matrix-clustering_query_matrices.transfac transfac -matrix myc_referencemotif $RSAT/public_html/tmp/www-data/2022/02/13/matrix-clustering_2022-02-13.064600_jSHeOa/matrix-clustering_second_matrices. transfac -hclust_method average -calc sum -title 'myc_discoveredmotifs' -metric_build_tree 'Ncor' -lth w 5 -lth cor 0.6 -lth Ncor 0.4 -quick -label_in_tree name -return json,heatmap  -o $RSAT/public_html/tmp/www-data/2022/02/13/matrix-clustering_2022-02-13.064600_jSHeOa/matrix-clustering 2> $RSAT/public_html/tmp/www-data/2022/02/13/matrix-clustering_2022-02-13.064600_jSHeOa/matrix-clustering_err.txt
+* * * * * * *
